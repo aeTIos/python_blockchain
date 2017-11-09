@@ -1,22 +1,24 @@
+#!/usr/bin/env python3
 import hashlib
 import time
 
+
 class Block:
-    def __init__(self, index, timestamp, data, previoushash, difficulty):
+    def __init__(self, index, timestamp, data, previoushash, target):
         self.index = index
         self.previoushash = previoushash
         self.timestamp = timestamp
         self.data = data
         self.nonce = 0
+
         while True:
             hashobject = self.calculate_hash(f'{index}'
-                                                  f'{previoushash}'
-                                                  f'{timestamp}'
-                                                  f'{data}'
-                                                  f'{self.nonce}')
+                                             f'{previoushash}'
+                                             f'{timestamp}'
+                                             f'{data}'
+                                             f'{self.nonce}')
 
-            print(hashobject.hexdigest(), "  ", self.nonce)
-            if int.from_bytes(hashobject.digest()[0:difficulty], byteorder='big') != 0:
+            if int.from_bytes(hashobject.digest()[0:target], byteorder='big') != 0:
                 self.nonce += 1
             else:
                 self.hash = hashobject.hexdigest()
@@ -29,25 +31,23 @@ class Block:
 
 
 class Blockchain:
-    def __init__(self):
-        # init chain
+    def __init__(self, target):
         self.chain = []
-        self.chain_length = 0  # maybe just make this dynamic by returning len(self.chain)  ?
 
-        self.difficulty = 2
+        self.target = target
 
-        # init genesis block as first block in chain
-        self.chain.append(Block(self.chain_length, time.time(), 'First block of the chain!',
-                                'There is no previous hash', 2))
-        print('initialized chain!')
+        self.chain.append(Block(0, time.time(), 'First block of the chain!',
+                                'There is no previous hash', self.target))
+        print('Initialized chain!')
 
     def add_block(self, data):
-        self.chain.append(Block(len(self.chain), time.time(), data, self.chain[-1].hash,
-                                self.difficulty))
+        self.chain.append(Block(len(self.chain), time.time(), data,
+                                self.chain[-1].hash, self.target))
 
 
-# actual program
-blockchain = Blockchain()
+
+blockchain = Blockchain(1)
 
 while True:
-    blockchain.add_block(input('data to add to chain:'))
+    blockchain.add_block(input('Data to add to chain:'))
+    blockchain.target += 1
